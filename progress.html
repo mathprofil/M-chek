@@ -1,0 +1,618 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Интерактивный чек-лист — 19 разделов математики</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+            background: #f0f3f7;
+            padding: 25px 15px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .wrapper {
+            max-width: 1200px;
+            width: 100%;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 2.6rem;
+            font-weight: 500;
+            color: #1e3c5a;
+            letter-spacing: -0.01em;
+        }
+
+        .header p {
+            font-size: 1.2rem;
+            color: #2f5575;
+            background: #d9e5f0;
+            display: inline-block;
+            padding: 8px 30px;
+            border-radius: 60px;
+            margin-top: 10px;
+        }
+
+        /* панель статистики */
+        .stats-grid {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            background: white;
+            border-radius: 40px;
+            padding: 20px 35px;
+            margin-bottom: 25px;
+            box-shadow: 0 8px 18px -8px rgba(30,60,90,0.1);
+            gap: 15px;
+        }
+
+        .stat-card {
+            flex: 1;
+            min-width: 120px;
+            text-align: center;
+        }
+
+        .stat-card .number {
+            font-size: 2.4rem;
+            font-weight: 600;
+            color: #1e4f72;
+            line-height: 1.2;
+        }
+
+        .stat-card .label {
+            font-size: 1rem;
+            color: #54738f;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .progress-main {
+            background: white;
+            border-radius: 30px;
+            padding: 25px 30px;
+            margin-bottom: 20px;
+            box-shadow: 0 5px 15px rgba(0,20,40,0.05);
+        }
+
+        .progress-bar {
+            height: 18px;
+            background: #e4ecf5;
+            border-radius: 40px;
+            overflow: hidden;
+            margin: 15px 0 5px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #4086b4, #63a6d1);
+            width: 0%;
+            transition: width 0.4s ease;
+            border-radius: 40px;
+        }
+
+        .progress-label {
+            display: flex;
+            justify-content: space-between;
+            color: #1a3f59;
+            font-weight: 500;
+        }
+
+        /* чек-лист */
+        .checklist-container {
+            background: white;
+            border-radius: 45px;
+            padding: 25px 30px;
+            box-shadow: 0 20px 35px -10px #1f446030;
+        }
+
+        .main-topic {
+            background: #f9fcff;
+            border-radius: 30px;
+            margin-bottom: 16px;
+            border: 1px solid #dde9f2;
+            transition: 0.1s;
+        }
+
+        .main-topic:hover {
+            background: #f1f7fd;
+        }
+
+        .topic-header {
+            display: flex;
+            align-items: center;
+            padding: 16px 22px;
+            cursor: pointer;
+            user-select: none;
+            gap: 15px;
+        }
+
+        .topic-number {
+            background: #356f9c;
+            color: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 1.2rem;
+            flex-shrink: 0;
+        }
+
+        .topic-title {
+            font-size: 1.4rem;
+            font-weight: 500;
+            color: #143549;
+            flex-grow: 1;
+            letter-spacing: -0.2px;
+        }
+
+        .topic-meta {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            font-size: 0.95rem;
+        }
+
+        .sub-counter {
+            background: #dbeafe;
+            color: #1e4e78;
+            padding: 4px 14px;
+            border-radius: 40px;
+            font-weight: 500;
+        }
+
+        .toggle-btn {
+            background: none;
+            border: none;
+            font-size: 2rem;
+            color: #346f9a;
+            cursor: pointer;
+            width: 35px;
+            height: 35px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: transform 0.2s;
+            font-weight: 300;
+        }
+
+        .toggle-btn.expanded {
+            transform: rotate(180deg);
+        }
+
+        .subtopics {
+            padding: 5px 22px 25px 77px;
+            display: none;
+        }
+
+        .subtopics.expanded {
+            display: block;
+        }
+
+        .subtopic-item {
+            display: flex;
+            align-items: center;
+            padding: 12px 15px;
+            border-bottom: 1px dashed #c9ddef;
+        }
+
+        .subtopic-item:last-child {
+            border-bottom: none;
+        }
+
+        .subtopic-item input[type="checkbox"] {
+            width: 22px;
+            height: 22px;
+            margin-right: 20px;
+            accent-color: #3182ce;
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+
+        .subtopic-label {
+            font-size: 1.1rem;
+            color: #1d415b;
+            line-height: 1.4;
+        }
+
+        .subtopic-label.completed {
+            text-decoration: line-through;
+            color: #7f9eb5;
+        }
+
+        /* кнопки управления */
+        .action-bar {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 35px;
+        }
+
+        .btn {
+            background: white;
+            border: 1px solid #b7cfdd;
+            padding: 12px 30px;
+            border-radius: 50px;
+            font-size: 1.1rem;
+            font-weight: 500;
+            color: #1f4d71;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 3px 8px #c7d9e8;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: #225e86;
+            border-color: #184b6b;
+            color: white;
+            box-shadow: 0 8px 16px -8px #1d5278;
+        }
+
+        .btn-primary:hover {
+            background: #1d4f72;
+        }
+
+        .btn:hover {
+            transform: translateY(-3px);
+            background: #eef5fa;
+        }
+
+        .btn-primary:hover {
+            background: #184762;
+        }
+
+        .footer {
+            margin-top: 30px;
+            color: #5f7e99;
+            text-align: center;
+        }
+
+        @media (max-width: 700px) {
+            .topic-header { flex-wrap: wrap; }
+            .topic-title { font-size: 1.2rem; }
+            .subtopics { padding-left: 25px; }
+            .stats-grid { flex-direction: column; }
+        }
+    </style>
+</head>
+<body>
+<div class="wrapper">
+    <div class="header">
+        <h1>📋 19 разделов математики</h1>
+        <p>интерактивный чек‑лист прогресса</p>
+    </div>
+
+    <!-- статистика -->
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="number" id="totalTopics">0</div>
+            <div class="label">всего тем</div>
+        </div>
+        <div class="stat-card">
+            <div class="number" id="completedCount">0</div>
+            <div class="label">изучено</div>
+        </div>
+        <div class="stat-card">
+            <div class="number" id="percentDone">0%</div>
+            <div class="label">прогресс</div>
+        </div>
+    </div>
+
+    <!-- прогресс-бар -->
+    <div class="progress-main">
+        <div class="progress-label">
+            <span>📈 Общий прогресс</span>
+            <span id="progressPercent">0%</span>
+        </div>
+        <div class="progress-bar">
+            <div class="progress-fill" id="progressFill" style="width:0%;"></div>
+        </div>
+    </div>
+
+    <!-- контейнер чек-листа -->
+    <div class="checklist-container" id="checklist"></div>
+
+    <!-- панель кнопок -->
+    <div class="action-bar">
+        <button class="btn" onclick="expandAll()">📂 Развернуть всё</button>
+        <button class="btn" onclick="collapseAll()">📁 Свернуть всё</button>
+        <button class="btn btn-primary" onclick="saveToLocalStorage()">💾 Сохранить</button>
+        <button class="btn" onclick="resetAllCheckboxes()">🔄 Сбросить</button>
+    </div>
+
+    <div class="footer">
+        ✔️ отмечай пройденные подтемы — прогресс сохраняется в браузере
+    </div>
+</div>
+
+<script>
+    (function() {
+        // ---------- ПОЛНЫЙ СПИСОК 19 РАЗДЕЛОВ (математика) ----------
+        const mathTopics = [
+            { id: 1,  title: "Планиметрия", subtopics: [
+                "Решение прямоугольного треугольника", "Решение равнобедренного треугольника", "Треугольники общего вида",
+                "Параллелограммы", "Трапеция", "Центральные и вписанные углы", "Касательная, хорда, секущая",
+                "Вписанные окружности", "Описанные окружности"
+            ]},
+            { id: 2,  title: "Векторы", subtopics: ["Векторы и операции с ними"] },
+            { id: 3,  title: "Стереометрия", subtopics: [
+                "Куб", "Прямоугольный параллелепипед", "Элементы составных многогранников",
+                "Площадь поверхности составного многогранника", "Объем составного многогранника", "Призма",
+                "Пирамида", "Комбинации тел", "Цилиндр", "Конус", "Шар"
+            ]},
+            { id: 4,  title: "Начала теории вероятностей", subtopics: ["Классическое определение вероятности"] },
+            { id: 5,  title: "Вероятности сложных событий", subtopics: [
+                "Теоремы о вероятностях событий", "Новые задания банка MathЕГЭ"
+            ]},
+            { id: 6,  title: "Простейшие уравнения", subtopics: [
+                "Линейные, квадратные, кубические уравнения", "Рациональные уравнения", "Иррациональные уравнения",
+                "Показательные уравнения", "Логарифмические уравнения", "Тригонометрические уравнения"
+            ]},
+            { id: 7,  title: "Вычисления и преобразования", subtopics: [
+                "Преобразования числовых рациональных выражений", "Преобразования алгебраических выражений и дробей",
+                "Вычисление значений степенных выражений", "Действия со степенями",
+                "Преобразования числовых иррациональных выражений", "Преобразования буквенных иррациональных выражений",
+                "Преобразования буквенных логарифмических выражений", "Вычисление значений тригонометрических выражений",
+                "Преобразования числовых тригонометрических выражений", "Преобразования буквенных тригонометрических выражений"
+            ]},
+            { id: 8,  title: "Производная и первообразная", subtopics: [
+                "Физический смысл производной", "Геометрический смысл производной, касательная",
+                "Применение производной к исследованию функций", "Первообразная"
+            ]},
+            { id: 9,  title: "Задачи с прикладным содержанием", subtopics: [
+                "Линейные уравнения и неравенства", "Квадратные и степенные уравнения и неравенства",
+                "Рациональные уравнения и неравенства", "Иррациональные уравнения и неравенства",
+                "Показательные уравнения и неравенства", "Логарифмические уравнения и неравенства",
+                "Тригонометрические уравнения и неравенства", "Разные задачи"
+            ]},
+            { id: 10, title: "Текстовые задачи", subtopics: [
+                "Задачи на проценты, сплавы и смеси", "Задачи на движение по прямой",
+                "Задачи на движение по окружности", "Задачи на движение по воде",
+                "Задачи на совместную работу", "Задачи на прогрессии"
+            ]},
+            { id: 11, title: "Графики функций", subtopics: [
+                "Линейные функции", "Параболы", "Гиперболы", "Корни", "Показательные и логарифмические функции",
+                "Тригонометрические функции", "Комбинированные задачи"
+            ]},
+            { id: 12, title: "Наибольшее и наименьшее значение функций", subtopics: [
+                "Исследование функций без помощи производной", "Исследование степенных и иррациональных функций",
+                "Исследование частных", "Исследование произведений",
+                "Исследование показательных и логарифмических функций", "Исследование тригонометрических функций"
+            ]},
+            { id: 13, title: "Уравнения", subtopics: [
+                "Показательные уравнения", "Рациональные уравнения", "Иррациональные уравнения",
+                "Логарифмические уравнения", "Тригонометрические уравнения, сводимые к квадратным",
+                "Тригонометрические уравнения, сводимые к однородным", "Тригонометрические уравнения, разложение на множители",
+                "Тригонометрические уравнения, исследование ОДЗ", "Тригонометрические уравнения, разные задачи",
+                "Тригонометрия и иррациональности", "Тригонометрия и логарифмы",
+                "Тригонометрия и показательные выражения", "Другие уравнения смешанного типа"
+            ]},
+            { id: 14, title: "Стереометрическая задача", subtopics: [
+                "Расстояние между прямыми и плоскостями", "Расстояние между точками, от точки до прямой",
+                "Расстояние от точки до плоскости", "Сечения пирамид", "Сечения призм",
+                "Сечения параллелепипедов", "Угол между плоскостями", "Угол между плоскостями граней многогранника",
+                "Угол между прямой и плоскостью", "Угол между скрещивающимися прямыми",
+                "Объёмы многогранников", "Сечения круглых тел", "Круглые тела: цилиндр, конус, шар",
+                "Комбинации фигур"
+            ]},
+            { id: 15, title: "Неравенства", subtopics: [
+                "Неравенства, содержащие радикалы", "Рациональные неравенства", "Показательные неравенства",
+                "Неравенства рациональные относительно показательной функции", "Логарифмические неравенства первой и второй степени",
+                "Неравенства рациональные относительно логарифмической функции", "Неравенства с логарифмами по переменному основанию",
+                "Неравенства с логарифмами по переменному основанию, применение рационализации",
+                "Логарифмические неравенства, разные задачи", "Показательные выражения и иррациональности",
+                "Логарифмы и показательные выражения", "Логарифмы и иррациональности",
+                "Неравенства с тригонометрией", "Неравенства с модулем", "Другие неравенства смешанного типа"
+            ]},
+            { id: 16, title: "Финансовая математика", subtopics: [
+                "Вклады", "Кредиты", "Задачи на оптимальный выбор", "Разные задачи"
+            ]},
+            { id: 17, title: "Планиметрическая задача", subtopics: [
+                "Треугольники и их свойства", "Четырехугольники и их свойства", "Окружности и системы окружностей",
+                "Вписанные окружности и треугольники", "Описанные окружности и треугольники",
+                "Окружности и треугольники, разные задачи", "Вписанные окружности и четырехугольники",
+                "Описанные окружности и четырехугольники", "Окружности и четырехугольники, разные задачи",
+                "Разные задачи о многоугольниках"
+            ]},
+            { id: 18, title: "Задача с параметром", subtopics: [
+                "Уравнения с параметром", "Уравнения с параметром, содержащие модуль",
+                "Уравнения с параметром, содержащие радикалы", "Неравенства с параметром",
+                "Системы с параметром", "Расположение корней квадратного трехчлена",
+                "Использование симметрий", "Использование монотонности, оценок",
+                "Аналитическое решение уравнений и неравенств", "Аналитическое решение систем",
+                "Координаты (x, a)", "Уравнение окружности", "Расстояние между точками",
+                "Функции, зависящие от параметра"
+            ]},
+            { id: 19, title: "Числа и их свойства", subtopics: [
+                "Числа и их свойства", "Числовые наборы на карточках", "Последовательности и прогрессии",
+                "Сюжетные задачи (делимость, признаки, остатки)"
+            ]}
+        ];
+
+        // Глобальные переменные
+        window.mathTopics = mathTopics;
+        let totalSubtopicsCount = 0;
+        mathTopics.forEach(t => totalSubtopicsCount += t.subtopics.length);
+
+        // -----------------------------------------------------------------
+        // Рендерим весь чеклист
+        const container = document.getElementById('checklist');
+        function renderChecklist() {
+            let html = '';
+            for (let t of mathTopics) {
+                // счётчик выполненых для этой темы (будет обновлён позже через JS, но для статики оставим)
+                const subCount = t.subtopics.length;
+                html += `<div class="main-topic" data-topic-id="${t.id}" id="topic-${t.id}">`;
+                html += `<div class="topic-header" onclick="toggleTopic(${t.id})">`;
+                html += `<span class="topic-number">${t.id}</span>`;
+                html += `<span class="topic-title">${t.title}</span>`;
+                html += `<div class="topic-meta">`;
+                html += `<span class="sub-counter" id="counter-${t.id}">0/${subCount}</span>`;
+                html += `<span class="toggle-btn" id="arrow-${t.id}">⌄</span>`;
+                html += `</div></div>`;
+                html += `<div class="subtopics" id="subtopics-${t.id}">`;
+
+                t.subtopics.forEach((sub, idx) => {
+                    let subId = `${t.id}-${idx}`;
+                    html += `<div class="subtopic-item">`;
+                    html += `<input type="checkbox" class="sub-checkbox" data-topic="${t.id}" data-sub-idx="${idx}" id="chk_${t.id}_${idx}" onchange="updateGlobalStats()">`;
+                    html += `<label class="subtopic-label" for="chk_${t.id}_${idx}" id="label_${t.id}_${idx}">${sub}</label>`;
+                    html += `</div>`;
+                });
+
+                html += `</div></div>`;
+            }
+            container.innerHTML = html;
+
+            // после рендера пытаемся загрузить из localStorage
+            loadFromLocalStorage();
+            // обновить статистику и стрелки
+            updateAllCounters();
+            updateGlobalStats();
+        }
+
+        // сворачивание / разворачивание
+        window.toggleTopic = function(id) {
+            const subDiv = document.getElementById(`subtopics-${id}`);
+            const arrow = document.getElementById(`arrow-${id}`);
+            if (subDiv.classList.contains('expanded')) {
+                subDiv.classList.remove('expanded');
+                arrow.classList.remove('expanded');
+            } else {
+                subDiv.classList.add('expanded');
+                arrow.classList.add('expanded');
+            }
+        };
+
+        window.expandAll = function() {
+            mathTopics.forEach(t => {
+                document.getElementById(`subtopics-${t.id}`)?.classList.add('expanded');
+                document.getElementById(`arrow-${t.id}`)?.classList.add('expanded');
+            });
+        };
+
+        window.collapseAll = function() {
+            mathTopics.forEach(t => {
+                document.getElementById(`subtopics-${t.id}`)?.classList.remove('expanded');
+                document.getElementById(`arrow-${t.id}`)?.classList.remove('expanded');
+            });
+        };
+
+        // обновление счётчиков над каждым разделом
+        function updateAllCounters() {
+            mathTopics.forEach(t => {
+                let completed = 0;
+                t.subtopics.forEach((_, idx) => {
+                    const chk = document.getElementById(`chk_${t.id}_${idx}`);
+                    if (chk && chk.checked) completed++;
+                });
+                const counterSpan = document.getElementById(`counter-${t.id}`);
+                if (counterSpan) counterSpan.innerText = `${completed}/${t.subtopics.length}`;
+
+                // отметить label зачёркнутым
+                t.subtopics.forEach((_, idx) => {
+                    const chk = document.getElementById(`chk_${t.id}_${idx}`);
+                    const lbl = document.getElementById(`label_${t.id}_${idx}`);
+                    if (lbl) {
+                        if (chk && chk.checked) lbl.classList.add('completed');
+                        else lbl.classList.remove('completed');
+                    }
+                });
+            });
+        }
+
+        // глобальная статистика
+        window.updateGlobalStats = function() {
+            let totalChecked = 0;
+            mathTopics.forEach(t => {
+                t.subtopics.forEach((_, idx) => {
+                    const chk = document.getElementById(`chk_${t.id}_${idx}`);
+                    if (chk && chk.checked) totalChecked++;
+                });
+            });
+
+            const percent = totalSubtopicsCount ? Math.round((totalChecked / totalSubtopicsCount) * 100) : 0;
+            document.getElementById('totalTopics').innerText = totalSubtopicsCount;
+            document.getElementById('completedCount').innerText = totalChecked;
+            document.getElementById('percentDone').innerText = percent + '%';
+            document.getElementById('progressPercent').innerText = percent + '%';
+            document.getElementById('progressFill').style.width = percent + '%';
+
+            updateAllCounters();  // обновить маленькие счётчики
+        };
+
+        // сброс всех чекбоксов
+        window.resetAllCheckboxes = function() {
+            mathTopics.forEach(t => {
+                t.subtopics.forEach((_, idx) => {
+                    const chk = document.getElementById(`chk_${t.id}_${idx}`);
+                    if (chk) chk.checked = false;
+                });
+            });
+            updateGlobalStats();
+            saveToLocalStorage(); // автосохранение после сброса (опционально)
+        };
+
+        // сохранение в localStorage
+        window.saveToLocalStorage = function() {
+            const state = {};
+            mathTopics.forEach(t => {
+                t.subtopics.forEach((_, idx) => {
+                    const chk = document.getElementById(`chk_${t.id}_${idx}`);
+                    if (chk) {
+                        state[`${t.id}-${idx}`] = chk.checked;
+                    }
+                });
+            });
+            localStorage.setItem('mathChecklistState', JSON.stringify(state));
+            // можно показать уведомление, но ограничимся простым действием
+            alert('✅ Прогресс сохранён в браузере');
+        };
+
+        // загрузка из localStorage
+        function loadFromLocalStorage() {
+            const saved = localStorage.getItem('mathChecklistState');
+            if (!saved) return;
+            try {
+                const state = JSON.parse(saved);
+                mathTopics.forEach(t => {
+                    t.subtopics.forEach((_, idx) => {
+                        const key = `${t.id}-${idx}`;
+                        const chk = document.getElementById(`chk_${t.id}_${idx}`);
+                        if (chk && state[key] === true) chk.checked = true;
+                        else if (chk && state[key] === false) chk.checked = false;
+                    });
+                });
+            } catch (e) {}
+            updateGlobalStats();
+        }
+
+        // запуск после загрузки DOM
+        window.onload = function() {
+            renderChecklist();
+            // дополнительно вешаем обработчик на чекбоксы (onchange уже есть)
+        };
+    })();
+</script>
+</body>
+</html>
